@@ -62,7 +62,7 @@ void randomize ( int ordem[], int n )
     srand (time(NULL) );
 
     // comeca pelo ultimo elemento a aleatorizacao, sem necessidade do primeiro (pcp)
-    //n eh o modulo do conjunto dos elementos do array
+    // n eh o modulo do conjunto dos elementos do array
     for (int i = n-1; i > 0; i--)
     {
         // indice alatorio
@@ -76,41 +76,82 @@ void randomize ( int ordem[], int n )
 // ========================================= teste e parte principal ===========================
 int main()
 {
-    int ordem[44], vida, arma, escolha;
+    int ordem[44], vida, arma, escolha, mao, rodada, japulou;
     vida = 20;
     arma = 0;
+    escolha=0; //inicializa escolha
+    mao = 0; //as tres cartas escolhidas em uma rodada
+    rodada=0; //contador de rodadas
+    japulou = 0; //inicializa japulou
+
     for(int i = 0; i < 44; i++){
         ordem[i] = i;
     }
     int n = sizeof(ordem)/ sizeof(ordem[0]);
     randomize (ordem, n);
 
-    //cartas (0-25 sao inimigos), (26-34 armas) e (35-44 pocoes de cura)
-    ordem[0]=15;
-    printArray(ordem, n);
-    printf("Vida: %d", vida);
-    printf("\nArma: %d", arma);
+    /*
+    GAMEPLAY COMECA AQUI
+    */
 
-    do{
-    printf("\nEscolha uma carta\n");
-    scanf("%d", &escolha); //le as cartas escolhidas
-    }while (escolha<0 || escolha>3);
+    while(1){ //por enquanto roda pra sempre
+        //cartas (0-25 sao inimigos), (26-34 armas) e (35-44 pocoes de cura)
+        printArray(ordem, n);
+        printf("Vida: %d", vida);
+        printf("\nArma: %d", arma);
 
+        if(japulou==0){
+            printf("\nDeseja pular? Caso sim digite 1, caso nao digite 0 e escolha tres cartas\n");
+            do{
+                scanf("%d", &escolha); //le se pula
+            }while (escolha<0 || escolha>1);
 
-    //ve o tipo da carta
-    if(ordem[escolha]<=25){
-        //monstro
-        vida = dano(vida, ordem[escolha]);
-    } else{
-        if(ordem[escolha]>35){
-            //pocao de cura
-            vida = cura(vida, ordem[escolha]);
-        } else{
-        //arma
+            if(escolha==1){ //se pulou cai no caso 4 para pular na proxima verificacao
+                japulou=1;
+            }
+        } else {
+            japulou=0;
+            printf("\nEscolha tres cartas\n");
         }
+
+        do{
+            //se nao pulou
+            if(japulou != 1){
+                do{
+                    scanf("%d", &escolha); //le as cartas escolhidas
+                    escolha = escolha-1;
+                }while(escolha<0 || escolha>4);
+
+                //ve o tipo da carta
+                if(ordem[escolha]<=25){
+                    //monstro
+                    vida = dano(vida, ordem[escolha]);
+                } else{
+                    if(ordem[escolha]>35){
+                        //pocao de cura
+                        vida = cura(vida, ordem[escolha]);
+                    } else{
+                    //arma
+                    }
+                }
+                mao++;
+            } else {
+                randomize (ordem, n);
+                mao = 3;
+            }
+        }while(mao<3);
+        mao=0; //recomeca a escolha das cartas
+        rodada++;
+        printf("\n\n"); //da espaco pra proxima tela
     }
+
+    /*
+    GAMEPLAY ACABA AQUI
+    */
+
     /* ===debug===
     printf("\n\n vida: %d \n\n", vida);
+    //printArray(ordem, n);
     */
     return 0;
 } // =====================================================================================
