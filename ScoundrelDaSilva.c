@@ -76,11 +76,12 @@ void randomize ( int ordem[], int n )
 // ========================================= teste e parte principal ===========================
 int main()
 {
-    int ordem[44], vida, arma, escolha, mao, rodada, japulou;
+    int ordem[44], vida, arma, escolha1, escolha2, escolha3, mao, rodada, japulou;
     vida = 20;
     arma = 0;
-    escolha=0; //inicializa escolha
-    mao = 0; //as tres cartas escolhidas em uma rodada
+    escolha1=0; //inicializa as escolhas
+    escolha2=0;
+    escolha3=0;
     rodada=0; //contador de rodadas
     japulou = 0; //inicializa japulou
 
@@ -103,10 +104,10 @@ int main()
         if(japulou==0){
             printf("\nDeseja pular? Caso sim digite 1, caso nao digite 0 e escolha tres cartas\n");
             do{
-                scanf("%d", &escolha); //le se pula
-            }while (escolha<0 || escolha>1);
+                scanf("%d", &escolha1); //le se pula
+            }while ((escolha1<0 || escolha1>1));
 
-            if(escolha==1){ //se pulou cai no caso 4 para pular na proxima verificacao
+            if(escolha1==1){ //se pulou cai no caso 4 para pular na proxima verificacao
                 japulou=1;
             }
         } else {
@@ -114,32 +115,59 @@ int main()
             printf("\nEscolha tres cartas\n");
         }
 
-        do{
-            //se nao pulou
-            if(japulou != 1){
-                do{
-                    scanf("%d", &escolha); //le as cartas escolhidas
-                    escolha = escolha-1;
-                }while(escolha<0 || escolha>4);
-
+           //se nao pulou
+           if(japulou != 1){
+               do{
+                   scanf("%d", &escolha1); //le as cartas escolhidas
+                   scanf("%d", &escolha2);
+                   scanf("%d", &escolha3);
+                   escolha1 = escolha1-1;
+                   escolha2 = escolha2-1;
+                   escolha3 = escolha3-1;
+                   if(((escolha1<0 || escolha1>4)||(escolha2<0 || escolha2>4)||(escolha3<0 || escolha3>4))||(escolha1==escolha2 || escolha1==escolha3 || escolha2==escolha3)){
+                       printf("Alguma das escolhas foi invalida, tente novamente\n");
+                   }
+               }while(((escolha1<0 || escolha1>4)||(escolha2<0 || escolha2>4)||(escolha3<0 || escolha3>4))||(escolha1==escolha2 || escolha1==escolha3 || escolha2==escolha3));
                 //ve o tipo da carta
-                if(ordem[escolha]<=25){
-                    //monstro
-                    vida = dano(vida, ordem[escolha]);
-                } else{
-                    if(ordem[escolha]>35){
-                        //pocao de cura
-                        vida = cura(vida, ordem[escolha]);
+               if(ordem[escolha1]<=25){
+                   //monstro
+                   vida = dano(vida, ordem[escolha1]);
+               } else{
+                   if(ordem[escolha1]>35){
+                       //pocao de cura
+                       vida = cura(vida, ordem[escolha1]);
+                   } else{
+                   //arma
+                   }
+               }
+
+               if(ordem[escolha2]<=25){
+                   //monstro
+                   vida = dano(vida, ordem[escolha2]);
+               } else{
+                   if(ordem[escolha2]>35){
+                       //pocao de cura
+                       vida = cura(vida, ordem[escolha2]);
                     } else{
-                    //arma
-                    }
-                }
-                mao++;
-            } else {
+                   //arma
+                   }
+               }
+
+                if(ordem[escolha3]<=25){
+                   //monstro
+                   vida = dano(vida, ordem[escolha3]);
+               } else{
+                   if(ordem[escolha3]>35){
+                       //pocao de cura
+                       vida = cura(vida, ordem[escolha3]);
+                   } else{
+                   //arma
+                   }
+               }
+           } else {
                 randomize (ordem, n);
                 mao = 3;
             }
-        }while(mao<3);
         mao=0; //recomeca a escolha das cartas
         rodada++;
         printf("\n\n"); //da espaco pra proxima tela
