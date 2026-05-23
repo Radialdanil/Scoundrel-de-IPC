@@ -1,246 +1,617 @@
 
+
+/*
+ * Integrantes do Grupo: [Espaço para Nomes e NRs USP]
+ * Disciplina: SME0230 - Introdução à Programação de Computadores
+ *
+ * Uso de Inteligência Artificial: O modelo foi utilizado estritamente para
+ * auditoria de bugs lógicos na máquina de estados do jogo e para a modelagem
+ * visual das cartas e menu em ASCII Art via printf.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-// trocar a ordem dos inteiros numa matriz de 0 a 43
+/* =========================================================================
+ * INDICE DE CARTAS NO ARRAY 'ordem[44]':
+ *  0 - 12  : Monstros de Paus  (valores 1 a 13, onde 11=J, 12=Q, 13=K)
+ * 13 - 25  : Monstros de Espadas (valores 1 a 13)
+ * 26 - 34  : Armas de Ouros    (valores 2 a 10)
+ * 35 - 43  : Pocoes de Copas   (valores 2 a 10)
+ * =========================================================================
+ */
+
+/* Troca dois inteiros de posicao via ponteiros */
 void swap(int *a, int *b) {
-    int temp = *a;
-    *a = *b;
-    *b = temp;
-    return;
+  int temp = *a;
+  *a = *b;
+  *b = temp;
+  return;
 }
 
-// imprimir o deck ===debug===
-// ta so no seco no seco, so com os valores
-void printArray(int ordem[], int n) {
-    for (int i = 0; i < 4; i++) {
-        // printf("%d ", ordem[i]);
-        if (ordem[i] < 13) {
-            printf("%d", ordem[i] + 1);
-            printf("P- ");
-        } else {
-            if (ordem[i] < 26) {
-                printf("%d", (ordem[i] % 13) + 1);
-                printf("E- ");
-            } else {
-                if (ordem[i] < 35) {
-                    printf("%d", ordem[i] - 24);
-                    printf("O* ");
-
-                } else {
-                    if (ordem[i] < 44) {
-                        printf("%d", ordem[i] - 33);
-                        printf("C+ ");
-                    }
-                }
-            }
-        }
-    }
-    printf("\n\n");
-    return;
-}
-
-// pocao de cura
-int cura(int vtemp, int ctemp)  // vida e cura "temporarias" (da funcao)
-{
-    vtemp = vtemp + ctemp - 33;
-    if (vtemp > 20) {
-        vtemp = 20;
-    }
-    return vtemp;
-}
-
-// monstros e dano
-int dano(int vtemp, int dtemp,
-         int atemp)  // vida, dano e arma "temporarios" (da funcao)
-{
-    if ((dtemp % 13 + 1 - atemp) >= 0) {
-        vtemp = vtemp - (dtemp % 13 + 1 - atemp);
-    }
-    return vtemp;
-}
-
-int armaf(int dtemp, int atemp) {  // dano e arma "temmporarios" (da funcao)
-    if ((dtemp % 13 + 1) < atemp) {
-        atemp = (dtemp % 13 + 1);
-    }
-    return atemp;
-}
-
-// permutacao aleatoria
+/* Permutacao aleatoria (Fisher-Yates) */
 void randomize(int ordem[], int n) {
-    // semementes diferentes para diferentes configuracoes
-    srand(time(NULL));
-
-    // comeca pelo ultimo elemento a aleatorizacao, sem necessidade do primeiro
-    // (pcp) n eh o modulo do conjunto dos elementos do array
-    for (int i = n - 1; i > 0; i--) {
-        // indice alatorio
-        int j = rand() % (i + 1);
-
-        // trocar com um de outro indice
-        swap(&ordem[i], &ordem[j]);
-    }
-    return;
+  srand(time(NULL));
+  for (int i = n - 1; i > 0; i--) {
+    int j = rand() % (i + 1);
+    swap(&ordem[i], &ordem[j]);
+  }
+  return;
 }
 
-// ========================================= teste e parte principal
-// ===========================
-int main() {
-    int ordem[44], vida, arma, escolha1, escolha2, escolha3, mao, rodada,
-        japulou, japocao, descartar_escolha;
+/* Retorna o valor numerico de uma carta dado seu indice no array */
+int valor_carta(int indice) {
+  if (indice < 26) {
+    /* Monstro (Paus ou Espadas): valor = (indice % 13) + 1 */
+    return (indice % 13) + 1;
+  } else if (indice < 35) {
+    /* Arma (Ouros): indice 26 = valor 2, ..., 34 = valor 10 */
+    return indice - 24;
+  } else {
+    /* Pocao (Copas): indice 35 = valor 2, ..., 43 = valor 10 */
+    return indice - 33;
+  }
+}
+
+/* Copia o nome do naipe de uma carta para o buffer fornecido */
+void naipe_carta(int indice, char *buf) {
+  if (indice < 13) {
+    buf[0] = 'P';
+    buf[1] = 'a';
+    buf[2] = 'u';
+    buf[3] = 's';
+    buf[4] = '\0';
+  } else if (indice < 26) {
+    buf[0] = 'E';
+    buf[1] = 's';
+    buf[2] = 'p';
+    buf[3] = 'a';
+    buf[4] = 'd';
+    buf[5] = 'a';
+    buf[6] = 's';
+    buf[7] = '\0';
+  } else if (indice < 35) {
+    buf[0] = 'O';
+    buf[1] = 'u';
+    buf[2] = 'r';
+    buf[3] = 'o';
+    buf[4] = 's';
+    buf[5] = '\0';
+  } else {
+    buf[0] = 'C';
+    buf[1] = 'o';
+    buf[2] = 'p';
+    buf[3] = 'a';
+    buf[4] = 's';
+    buf[5] = '\0';
+  }
+  return;
+}
+
+/* Retorna o simbolo ASCII do naipe */
+char simbolo_naipe(int indice) {
+  if (indice < 13)
+    return 'P';
+  if (indice < 26)
+    return 'E';
+  if (indice < 35)
+    return 'O';
+  return 'C';
+}
+
+/* Retorna a string do valor para exibicao (1->A nao existe aqui, 11->J, etc.)
+ */
+void str_valor(int val, char *buf) {
+  if (val == 11) {
+    buf[0] = 'J';
+    buf[1] = '\0';
+  } else if (val == 12) {
+    buf[0] = 'Q';
+    buf[1] = '\0';
+  } else if (val == 13) {
+    buf[0] = 'K';
+    buf[1] = '\0';
+  } else if (val == 14) {
+    buf[0] = 'A';
+    buf[1] = '\0';
+  } else if (val == 10) {
+    buf[0] = '1';
+    buf[1] = '0';
+    buf[2] = '\0';
+  } else {
+    buf[0] = '0' + val;
+    buf[1] = '\0';
+  }
+  return;
+}
+
+/* Imprime a tela de titulo em ASCII Art */
+void imprimir_titulo(void) {
+  printf("\n");
+
+  printf(" #####    #####   ####   ##  ##  ##  ##  #####   #####   ######  ##  "
+         "  \n");
+  printf("##      ##       ##  ##  ##  ##  ### ##  ##  ##  ##  ##  ##      ##    "
+         "\n");
+  printf(" ####   ##       ##  ##  ##  ##  ######  ##  ##  #####   ####    ##    "
+         "\n");
+  printf("    ##  ##       ##  ##  ##  ##  ## ###  ##  ##  ## ##   ##      ##    "
+         "\n");
+  printf("#####    #####    ####    ####   ##  ##  #####   ##  ##  ######  "
+         "######\n");
+  printf("\n");
+
+  printf("================================================================\n");
+
+  printf("\n");
+  return;
+}
+
+/* Imprime uma linha de uma carta ASCII (12 linhas x 18 chars com bordas).
+ * Todas as linhas internas tem EXATAMENTE 16 chars entre os pipes |...|
+ * linha: 0 a 11  |  indice: posicao no array (ou -1 para carta invalida) */
+void imprimir_linha_carta(int linha, int indice) {
+  char val_str[3];
+  int val = 0;
+
+  if (indice >= 0) {
+    val = valor_carta(indice);
+    str_valor(val, val_str);
+  }
+
+  /* Monstro: Paus (P) ou Espadas (E) */
+  if (indice >= 0 && indice < 26) {
+    if (linha == 0)
+      printf("+----------------+");
+    else if (linha == 1) {
+      /* canto superior: valor alinhado a esquerda, 16 chars internos */
+      if (val == 10)
+        printf("|10              |");
+      else if (val > 10)
+        printf("|%s               |", val_str);
+      else
+        printf("|%s               |", val_str);
+    } else if (linha == 2)
+      printf("|    MONSTRO     |");
+    else if (linha == 3)
+      printf("|   /\\      /\\   |");
+    else if (linha == 4)
+      printf("|  /  \\____/  \\  |");
+    else if (linha == 5)
+      printf("|  |  O    O  |  |");
+    else if (linha == 6)
+      printf("|  \\_  vvvv  _/  |");
+    else if (linha == 7)
+      printf("|    \\ ^^^^ /    |");
+    else if (linha == 8)
+      printf("|     \\____/     |");
+    else if (linha == 9)
+      printf("|                |");
+    else if (linha == 10) {
+      /* rodape: valor centrado, sem naipe */
+      if (val == 10)
+        printf("|    [ 10 ]      |");
+      else if (val > 10)
+        printf("|    [  %s ]      |", val_str);
+      else
+        printf("|    [ 0%s ]      |", val_str);
+    } else if (linha == 11)
+      printf("+----------------+");
+  }
+  /* Arma: Ouros (O) */
+  else if (indice >= 0 && indice < 35) {
+    if (linha == 0)
+      printf("+----------------+");
+    else if (linha == 1) {
+      if (val == 10)
+        printf("|10              |");
+      else
+        printf("|%s               |", val_str);
+    } else if (linha == 2)
+      printf("|      ARMA      |");
+    else if (linha == 3)
+      printf("|       /\\       |");
+    else if (linha == 4)
+      printf("|      |  |      |");
+    else if (linha == 5)
+      printf("|      |  |      |");
+    else if (linha == 6)
+      printf("|      |  |      |");
+    else if (linha == 7)
+      printf("|     /_  _\\     |");
+    else if (linha == 8)
+      printf("|     [____]     |");
+    else if (linha == 9)
+      printf("|       ||       |");
+    else if (linha == 10) {
+      if (val == 10)
+        printf("|    [ 10 ]      |");
+      else
+        printf("|    [ 0%s ]      |", val_str);
+    } else if (linha == 11)
+      printf("+----------------+");
+  }
+  /* Pocao de Cura: Copas (C) */
+  else if (indice >= 0) {
+    if (linha == 0)
+      printf("+----------------+");
+    else if (linha == 1) {
+      if (val == 10)
+        printf("|10              |");
+      else
+        printf("|%s               |", val_str);
+    } else if (linha == 2)
+      printf("|      CURA      |");
+    else if (linha == 3)
+      printf("|       ^^^      |");
+    else if (linha == 4)
+      printf("|      [___]     |");
+    else if (linha == 5)
+      printf("|       | |      |");
+    else if (linha == 6)
+      printf("|   .-' '-.      |");
+    else if (linha == 7)
+      printf("|   /  o  . \\    |");
+    else if (linha == 8)
+      printf("|  |  ~~~~~  |   |");
+    else if (linha == 9)
+      printf("|   \\_______/    |");
+    else if (linha == 10) {
+      if (val == 10)
+        printf("|    [ 10 ]      |");
+      else
+        printf("|    [ 0%s ]      |", val_str);
+    } else if (linha == 11)
+      printf("+----------------+");
+  }
+  /* Carta invalida */
+  else {
+    if (linha == 0)
+      printf("+----------------+");
+    else if (linha == 11)
+      printf("+----------------+");
+    else
+      printf("|   [  ???  ]    |");
+  }
+  return;
+}
+
+/* Imprime a sala de 4 cartas lado a lado com legenda numerada */
+void imprimir_sala(int ordem[], int ini) {
+  printf("\n  --- SALA ATUAL ---\n\n");
+  printf(
+      "     Carta 1           Carta 2           Carta 3           Carta 4\n");
+
+  for (int linha = 0; linha < 12; linha++) {
+    printf("  ");
+    for (int c = 0; c < 4; c++) {
+      imprimir_linha_carta(linha, ordem[ini + c]);
+      printf("  ");
+    }
+    printf("\n");
+  }
+  printf("\n\n");
+  return;
+}
+
+/* Calcula vida apos usar uma pocao (valor = indice - 33) */
+int cura(int vida, int indice_pocao) {
+  int recuperacao = indice_pocao - 33;
+  vida = vida + recuperacao;
+  if (vida > 20) {
     vida = 20;
-    arma = 0;
-    escolha1 = 0;  // inicializa as escolhas
-    escolha2 = 0;
-    escolha3 = 0;
-    rodada = 0;   // contador de rodadas
-    japulou = 0;  // inicializa japulou, que eh usado para verificar se a pessoa
-                  // pulou a ultima rodada
-    japocao = 0;  // inicializa japocao, que conta se a pessoa pegou pocao antes
+  }
+  return vida;
+}
 
-    for (int i = 0; i < 44; i++) {
-        ordem[i] = i;
+/* Calcula vida apos enfrentar monstro (com ou sem arma).
+ * arma == 0 significa desarmado. */
+int calcular_dano(int vida, int indice_monstro, int arma) {
+  int valor_monstro = (indice_monstro % 13) + 1;
+  int dano_sofrido = valor_monstro - arma;
+  if (dano_sofrido > 0) {
+    vida = vida - dano_sofrido;
+  }
+  return vida;
+}
+
+/* Atualiza o limite da arma apos derrotar um monstro com ela.
+ * A arma so pode atacar monstros de valor menor que o ultimo derrotado.
+ * Retorna o novo limite (que passa a ser o valor do monstro derrotado). */
+int atualizar_limite_arma(int indice_monstro) {
+  return (indice_monstro % 13) + 1;
+}
+
+/* Verifica se a arma pode ser usada contra este monstro.
+ * limite_arma == 0 significa arma recen-equipada (sem restricao ainda).
+ * Retorna 1 se pode usar, 0 se nao pode. */
+int arma_pode_atacar(int limite_arma, int indice_monstro) {
+  int valor_monstro = (indice_monstro % 13) + 1;
+  if (limite_arma == 0) {
+    return 1; /* sem restricao ainda */
+  }
+  return (valor_monstro < limite_arma);
+}
+
+/* Imprime o estado atual da mesa (vida, arma equipada, limite) */
+void imprimir_mesa(int vida, int arma, int limite_arma, int japulou) {
+  printf(
+      " ================================================================== \n");
+  printf("  Pontos de Vida: %d / 20\n", vida);
+
+  if (arma == 0) {
+    printf("  Arma equipada : Nenhuma\n");
+  } else {
+    printf("  Arma equipada : %d (Ouros)", arma);
+    if (limite_arma > 0) {
+      printf("  [so ataca monstros < %d]", limite_arma);
     }
-    int n = sizeof(ordem) / sizeof(ordem[0]);
-    randomize(ordem, n);
+    printf("\n");
+  }
 
-    /*
-    GAMEPLAY COMECA AQUI
-    */
+  if (japulou == 1) {
+    printf(
+        "  Aviso         : Voce pulou a ultima sala. NAO pode pular esta.\n");
+  } else {
+    printf("  Aviso         : Voce PODE pular esta sala.\n");
+  }
+  printf(
+      " ================================================================== \n");
+  return;
+}
 
-    while (vida > 0 &&
-           ordem[0] >
-               -1) {  // por enquanto roda pra sempre, eh apenas temporario
-        // cartas (0-25 sao inimigos), (26-34 armas) e (35-44 pocoes de cura)
-        printArray(ordem, n);
-        printf("Vida: %d", vida);
-        printf("\nArma: %d", arma);
+/* Resolve uma carta escolhida pelo jogador. Atualiza vida, arma e limite.
+ * Retorna 0 se tudo ok, -1 se o jogador morreu. */
+int resolver_carta(int indice, int *vida, int *arma, int *limite_arma,
+                   int *japocao) {
+  int val = valor_carta(indice);
 
-        if (japulou == 0) {
-            printf(
-                "\nDeseja pular? Caso sim digite 1, caso nao digite 0 e "
-                "escolha tres "
-                "cartas\n");
-            do {
-                scanf("%d", &escolha1);  // le se pula
-            } while ((escolha1 < 0 || escolha1 > 1));
-
-            if (escolha1 == 1) {  // se pulou cai no caso 4 para pular na
-                                  // proxima verificacao
-                japulou = 1;
-            }
-        } else {
-            japulou = 0;
-            printf("\nEscolha tres cartas\n");
+  if (indice < 26) {
+    /* Monstro */
+    if (*arma > 0 && arma_pode_atacar(*limite_arma, indice)) {
+      /* Pergunta ao jogador se quer usar a arma */
+      int usar_arma;
+      printf("  Monstro %d! Voce tem arma %d equipada. Usar arma? (1=sim / "
+             "0=nao): ",
+             val, *arma);
+      do {
+        scanf("%d", &usar_arma);
+        if (usar_arma < 0 || usar_arma > 1) {
+          printf("  Entrada invalida. Digite 1 para sim ou 0 para nao: ");
         }
+      } while (usar_arma < 0 || usar_arma > 1);
 
-        // se nao pulou
-        if (japulou != 1) {
-            do {
-                scanf("%d", &escolha1);  // le as cartas escolhidas
-                scanf("%d", &escolha2);
-                scanf("%d", &escolha3);
-                escolha1 = escolha1 - 1;
-                escolha2 = escolha2 - 1;
-                escolha3 = escolha3 - 1;
-                if (((escolha1 < 0 || escolha1 > 4) ||
-                     (escolha2 < 0 || escolha2 > 4) ||
-                     (escolha3 < 0 || escolha3 > 4)) ||
-                    (escolha1 == escolha2 || escolha1 == escolha3 ||
-                     escolha2 == escolha3)) {
-                    printf(
-                        "Alguma das escolhas foi invalida, tente novamente\n");
-                }
-            } while (((escolha1 < 0 || escolha1 > 4) ||
-                      (escolha2 < 0 || escolha2 > 4) ||
-                      (escolha3 < 0 || escolha3 > 4)) ||
-                     (escolha1 == escolha2 || escolha1 == escolha3 ||
-                      escolha2 == escolha3));
+      if (usar_arma == 1) {
+        *vida = calcular_dano(*vida, indice, *arma);
+        *limite_arma = atualizar_limite_arma(indice);
+        printf("  Voce usou a arma! Dano sofrido: %d\n",
+               val - *arma > 0 ? val - *arma : 0);
+      } else {
+        *vida = calcular_dano(*vida, indice, 0);
+        printf("  Voce lutou desarmado! Dano sofrido: %d\n", val);
+      }
+    } else {
+      /* Sem arma ou arma nao pode atacar este monstro */
+      if (*arma > 0) {
+        printf(
+            "  Monstro %d! Sua arma nao pode atacar este monstro (limite: %d). "
+            "Lutando desarmado!\n",
+            val, *limite_arma);
+      } else {
+        printf("  Monstro %d! Sem arma equipada. Lutando desarmado!\n", val);
+      }
+      *vida = calcular_dano(*vida, indice, 0);
+      printf("  Dano sofrido: %d\n", val);
+    }
 
-            // ve o tipo da carta
-            if (ordem[escolha1] <= 25) {
-                // monstro
-                vida = dano(vida, ordem[escolha1], arma);
-                arma = armaf(ordem[escolha1], arma);
-            } else {
-                if (ordem[escolha1] > 35) {
-                    // pocao de cura
-                    if (japocao == 0) {
-                        vida = cura(vida, ordem[escolha1]);
-                        japocao = 1;
-                    }
-                } else {
-                    // arma
-                    arma = ordem[escolha1] - 24;
-                }
-            }
+    if (*vida <= 0) {
+      return -1;
+    }
 
-            if (ordem[escolha2] <= 25) {
-                // monstro
-                vida = dano(vida, ordem[escolha2], arma);
-                arma = armaf(ordem[escolha2], arma);
-            } else {
-                if (ordem[escolha2] > 35) {
-                    // pocao de cura
-                    if (japocao == 0) {
-                        vida = cura(vida, ordem[escolha2]);
-                        japocao = 1;
-                    }
-                } else {
-                    // arma
-                    arma = ordem[escolha1] - 24;
-                }
-            }
+  } else if (indice < 35) {
+    /* Arma */
+    *arma = valor_carta(indice);
+    *limite_arma = 0; /* nova arma, sem restricao ainda */
+    printf("  Voce equipou uma arma de valor %d!\n", *arma);
 
-            if (ordem[escolha3] <= 25) {
-                // monstro
-                vida = dano(vida, ordem[escolha3], arma);
-                arma = armaf(ordem[escolha3], arma);
-            } else {
-                if (ordem[escolha3] > 35) {
-                    // pocao de cura
-                    if (japocao == 0) {
-                        vida = cura(vida, ordem[escolha3]);
-                        japocao = 1;
-                    }
-                } else {
-                    // arma
-                    arma = ordem[escolha1] - 24;
-                }
-            }
+  } else {
+    /* Pocao */
+    if (*japocao == 0) {
+      int vida_antes = *vida;
+      *vida = cura(*vida, indice);
+      printf("  Pocao usada! Vida restaurada de %d para %d.\n", vida_antes,
+             *vida);
+      *japocao = 1;
+    } else {
+      printf("  Segunda pocao no mesmo turno descartada.\n");
+    }
+  }
 
-            // pega cartas novas
-            descartar_escolha = escolha1;  // guarda temporariamente escolha 1
-            ordem[escolha1] = ordem[43 - (rodada * 3)];  // ultima carta valida
-            ordem[43 - (rodada * 3)] = -1;               // invalida as usadas
+  return 0;
+}
 
-            descartar_escolha = escolha2;  // guarda temporariamente escolha 2
-            ordem[escolha2] = ordem[42 - (rodada * 3)];  // ultima carta valida
-            ordem[42 - (rodada * 3)] = -1;               // invalida as usadas
+/* Move as 4 cartas do inicio do array para o final (pular sala).
+ * As cartas sao inseridas no final do deck ainda nao processado. */
+void pular_sala(int ordem[], int total_restante) {
+  /* Guarda as 4 cartas da sala */
+  int c0 = ordem[0];
+  int c1 = ordem[1];
+  int c2 = ordem[2];
+  int c3 = ordem[3];
 
-            descartar_escolha = escolha3;  // guarda temporariamente escolha 3
-            ordem[escolha3] = ordem[41 - (rodada * 3)];  // ultima carta valida
-            ordem[41 - (rodada * 3)] = -1;               // invalida as usadas
+  /* Desloca todas as outras cartas validas para a esquerda */
+  int validas = 0;
+  for (int i = 0; i < total_restante; i++) {
+    if (ordem[i] >= 0) {
+      validas++;
+    }
+  }
 
-            rodada++;  // soma o contador de rodadas
+  /* Conta quantas cartas validas existem alem das 4 da sala */
+  int destino = 0;
+  for (int i = 4; i < total_restante; i++) {
+    if (ordem[i] >= 0) {
+      ordem[destino] = ordem[i];
+      destino++;
+    }
+  }
+  /* Coloca as 4 cartas puladas no final */
+  ordem[destino] = c0;
+  ordem[destino + 1] = c1;
+  ordem[destino + 2] = c2;
+  ordem[destino + 3] = c3;
 
-        } else {
-            randomize(ordem, n);
+  /* Marca posicoes sobrando como invalidas */
+  for (int i = destino + 4; i < total_restante; i++) {
+    ordem[i] = -1;
+  }
+  return;
+}
+
+/* Remove as 3 cartas escolhidas da sala e traz novas do deck.
+ * A carta nao escolhida permanece como primeira carta da proxima sala. */
+void atualizar_deck(int ordem[], int *total_restante, int e1, int e2, int e3) {
+  /* Marca as 3 escolhas como usadas (-1) */
+  ordem[e1] = -1;
+  ordem[e2] = -1;
+  ordem[e3] = -1;
+
+  /* Compacta o array: move validos para o inicio */
+  int write = 0;
+  for (int read = 0; read < *total_restante; read++) {
+    if (ordem[read] >= 0) {
+      ordem[write] = ordem[read];
+      write++;
+    }
+  }
+  /* Preenche o resto com -1 */
+  for (int i = write; i < *total_restante; i++) {
+    ordem[i] = -1;
+  }
+  *total_restante = write;
+  return;
+}
+
+int main(void) {
+  int ordem[44];
+  int vida = 20;
+  int arma = 0;        /* valor da arma equipada (0 = nenhuma) */
+  int limite_arma = 0; /* valor do ultimo monstro derrotado pela arma */
+  int japulou = 0;     /* 1 se pulou a sala anterior */
+  int japocao = 0;     /* 1 se ja usou pocao neste turno */
+  int total = 44;      /* total de cartas ainda no deck */
+
+  /* Inicializa deck de 0 a 43 */
+  for (int i = 0; i < 44; i++) {
+    ordem[i] = i;
+  }
+  randomize(ordem, total);
+
+  imprimir_titulo();
+
+  /* Loop principal: roda enquanto ha cartas e o jogador esta vivo */
+  while (vida > 0 && total >= 1) {
+
+    /* Garante que ha pelo menos 4 cartas para formar a sala */
+    if (total < 4) {
+      printf("\n  Masmorra esgotada! Voce venceu!\n");
+      vida = -1; /* sinaliza saida do loop sem morte */
+    }
+
+    if (vida > 0 && total >= 4) {
+      imprimir_mesa(vida, arma, limite_arma, japulou);
+      imprimir_sala(ordem, 0);
+
+      /* Verifica se pode pular */
+      int pulou = 0;
+      if (japulou == 0) {
+        int opcao;
+        printf("  Deseja pular esta sala? (1=sim / 0=nao): ");
+        do {
+          scanf("%d", &opcao);
+          if (opcao < 0 || opcao > 1) {
+            printf("  Entrada invalida. Digite 1 ou 0: ");
+          }
+        } while (opcao < 0 || opcao > 1);
+
+        if (opcao == 1) {
+          pular_sala(ordem, total);
+          japulou = 1;
+          pulou = 1;
+          printf("  Sala evitada! As 4 cartas foram para o fundo da "
+                 "masmorra.\n\n");
         }
+      } else {
+        printf("  Voce nao pode pular duas salas seguidas.\n");
+      }
+
+      /* Se nao pulou, resolve 3 cartas */
+      if (pulou == 0) {
+        japulou = 0;
         japocao = 0;
-        printf("\n\n");  // da espaco pra proxima tela
+
+        int e1, e2, e3;
+        int valido = 0;
+
+        while (valido == 0) {
+          printf("  Escolha 3 cartas para resolver (numeros 1 a 4, separados "
+                 "por espaco): ");
+          scanf("%d %d %d", &e1, &e2, &e3);
+          e1--;
+          e2--;
+          e3--; /* converte para indice 0-3 */
+
+          if ((e1 < 0 || e1 > 3) || (e2 < 0 || e2 > 3) || (e3 < 0 || e3 > 3) ||
+              (e1 == e2 || e1 == e3 || e2 == e3)) {
+            printf("  Escolha invalida! Use numeros de 1 a 4 sem repeticao.\n");
+          } else {
+            valido = 1;
+          }
+        }
+
+        /* Resolve cada carta na ordem escolhida */
+        int resultado =
+            resolver_carta(ordem[e1], &vida, &arma, &limite_arma, &japocao);
+        if (resultado == 0) {
+          resultado =
+              resolver_carta(ordem[e2], &vida, &arma, &limite_arma, &japocao);
+        }
+        if (resultado == 0) {
+          resultado =
+              resolver_carta(ordem[e3], &vida, &arma, &limite_arma, &japocao);
+        }
+
+        if (resultado == -1) {
+          vida = 0; /* garante que o loop vai encerrar */
+        }
+
+        /* Atualiza o deck: remove as 3 cartas usadas */
+        atualizar_deck(ordem, &total, e1, e2, e3);
+      }
     }
 
-    /*
-    GAMEPLAY ACABA AQUI
-    */
+    printf("\n");
+  }
 
-    /* ===debug===
-    printf("\n\n vida: %d \n\n", vida);
-    //printArray(ordem, n);
-    */
+  /* Mensagem de fim de jogo */
+  if (vida <= 0) {
+    printf(
+        "\n ================================================================== "
+        "\n");
+    printf("  GAME OVER! Seus pontos de vida chegaram a zero.\n");
+    printf("  Voce foi derrotado pela Masmorra...\n");
+    printf(" =================================================================="
+           " \n\n");
+  } else {
+    printf(
+        "\n ================================================================== "
+        "\n");
+    printf("  VITORIA! Voce atravessou toda a Masmorra!\n");
+    printf("  Pontos de vida restantes: %d\n", vida);
+    printf(" =================================================================="
+           " \n\n");
+  }
 
-    return 0;
-}  // =====================================================================================
+  return 0;
+}
