@@ -142,7 +142,7 @@ void imprimir_titulo(void) {
          "######\n");
   printf("\n");
 
-  printf("================================================================\n");
+  printf(" ==================================================================\n");
 
   printf("\n");
   return;
@@ -590,7 +590,6 @@ int main(void) {
         atualizar_deck(ordem, &total, e1, e2, e3);
       }
     }
-
     printf("\n");
   }
 
