@@ -25,7 +25,6 @@ void randomize(int ordem[], int n) {
     srand(time(NULL));
     for (int i = n - 1; i > 0; i--) {
         int j = rand() % (i + 1);
-        //swap(&ordem[i], &ordem[j]);
         a = ordem[i];
         b = ordem[j];
         temp = a;
@@ -483,7 +482,6 @@ int main(void) {
 
                     if (vida <= 0) {
                         vida = 0;
-                        break;
                     }
 
                 } else if (ordem[e1] < 35) {
@@ -547,7 +545,6 @@ int main(void) {
 
                     if (vida <= 0) {
                         vida = 0;
-                        break;
                     }
 
                 } else if (ordem[e2] < 35) {
@@ -611,7 +608,6 @@ int main(void) {
 
                     if (vida <= 0) {
                         vida = 0;
-                        break;
                     }
 
                 } else if (ordem[e3] < 35) {
@@ -663,7 +659,7 @@ int main(void) {
     }
 
     /* Mensagem de fim de jogo */
-    if (vida <= 0) {
+    if (vida <= 0&& vida != -2) {
         printf(
             "\n ================================================================== "
             "\n");
@@ -677,7 +673,6 @@ int main(void) {
             "\n ================================================================== "
             "\n");
         printf("  VITORIA! Voce atravessou toda a Masmorra!\n");
-        printf("  Pontos de vida restantes: %d\n", vida);
         printf(" =================================================================="
                " \n\n");
     }
