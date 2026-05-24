@@ -92,20 +92,17 @@ void str_valor(int val, char buf[]) {
 void imprimir_titulo(void) {
     printf("\n");
 
-    printf(" #####    #####   ####   ##  ##  ##  ##  #####   #####   ######  ##  "
+    printf("  #####    #####   ####   ##  ##  ##  ##  #####   #####   ######  ##  "
            "  \n");
-    printf("##      ##       ##  ##  ##  ##  ### ##  ##  ##  ##  ##  ##      ##    "
+    printf(" ##      ##       ##  ##  ##  ##  ### ##  ##  ##  ##  ##  ##      ##    "
            "\n");
-    printf(" ####   ##       ##  ##  ##  ##  ######  ##  ##  #####   ####    ##    "
+    printf("  ####   ##       ##  ##  ##  ##  ######  ##  ##  #####   ####    ##    "
            "\n");
-    printf("    ##  ##       ##  ##  ##  ##  ## ###  ##  ##  ## ##   ##      ##    "
+    printf("     ##  ##       ##  ##  ##  ##  ## ###  ##  ##  ## ##   ##      ##    "
            "\n");
-    printf("#####    #####    ####    ####   ##  ##  #####   ##  ##  ######  "
+    printf(" #####     #####   ####    ####   ##  ##  #####   ##  ##  ######  "
            "######\n");
     printf("\n");
-
-    printf(" ==================================================================\n");
-
     printf("\n");
     return;
 }
@@ -240,8 +237,8 @@ void imprimir_linha_carta(int linha, int indice) {
 }
 
 /* Imprime a sala de 4 cartas lado a lado com legenda numerada */
-void imprimir_sala(int ordem[], int ini) {
-    printf("\n  --- SALA ATUAL ---\n\n");
+void imprimir_sala(int ordem[], int ini, int c_sala) {
+    printf("\n  --- SALA %d/14 ---\n\n", c_sala);
     printf(
         "  Carta 1             Carta 2             Carta 3             Carta 4\n");
 
@@ -363,30 +360,6 @@ void pular_sala(int ordem[], int total_restante) {
     return;
 }
 
-/* Remove as 3 cartas escolhidas da sala e traz novas do deck.
- * A carta nao escolhida permanece como primeira carta da proxima sala. */
-void atualizar_deck(int ordem[], int total_restante, int e1, int e2, int e3) {
-    /* Marca as 3 escolhas como usadas (-1) */
-    ordem[e1] = -1;
-    ordem[e2] = -1;
-    ordem[e3] = -1;
-
-    /* Compacta o array: move validos para o inicio */
-    int write = 0;
-    for (int read = 0; read < total_restante; read++) {
-        if (ordem[read] >= 0) {
-            ordem[write] = ordem[read];
-            write++;
-        }
-    }
-    /* Preenche o resto com -1 */
-    for (int i = write; i < total_restante; i++) {
-        ordem[i] = -1;
-    }
-    total_restante = write;
-    return;
-}
-
 int main(void) {
     int ordem[44];
     int vida = 20;
@@ -396,6 +369,7 @@ int main(void) {
     int japocao = 0;     /* 1 se ja usou pocao neste turno */
     int total = 44;      /* total de cartas ainda no deck */
     int val;
+    int contador_sala = 1;
 
     /* Inicializa deck de 0 a 43 */
     for (int i = 0; i < 44; i++) {
@@ -409,18 +383,20 @@ int main(void) {
         /* Garante que ha pelo menos 4 cartas para formar a sala */
         if (total < 4) {
             printf("\n  Masmorra esgotada! Voce venceu!\n");
-            vida = -1; /* sinaliza saida do loop sem morte */
+            vida = -2; /* sinaliza saida do loop sem morte */
         }
 
         if (vida > 0 && total >= 4) {
             imprimir_mesa(vida, arma, limite_arma, japulou);
-            imprimir_sala(ordem, 0);
+            imprimir_sala(ordem, 0, contador_sala);
 
             /* Verifica se pode pular */
             int pulou = 0;
             if (japulou == 0) {
                 int opcao;
-                printf("  Deseja pular esta sala? (1=sim / 0=nao): ");
+                printf("  ======================================== \n");
+                printf("  DESEJA PULAR ESTA SALA? (1=SIM / 0=NAO):  \n");
+                printf("  ======================================== \n   ");
                 do {
                     scanf("%d", &opcao);
                     if (opcao < 0 || opcao > 1) {
@@ -448,8 +424,9 @@ int main(void) {
                 int valido = 0;
 
                 while (valido == 0) {
-                    printf("  Escolha 3 cartas para resolver (numeros 1 a 4, separados "
-                           "por espaco): ");
+                    printf("\n  =====================================================================\n");
+                    printf("  Escolha 3 cartas para resolver (numeros 1 a 4, separados por espaco): \n");
+                    printf("  =====================================================================\n  ");
                     scanf("%d %d %d", &e1, &e2, &e3);
                     e1--;
                     e2--;
@@ -505,7 +482,8 @@ int main(void) {
                     }
 
                     if (vida <= 0) {
-                        return -1;
+                        vida = 0;
+                        break;
                     }
 
                 } else if (ordem[e1] < 35) {
@@ -568,7 +546,8 @@ int main(void) {
                     }
 
                     if (vida <= 0) {
-                        return -1;
+                        vida = 0;
+                        break;
                     }
 
                 } else if (ordem[e2] < 35) {
@@ -631,7 +610,8 @@ int main(void) {
                     }
 
                     if (vida <= 0) {
-                        return -1;
+                        vida = 0;
+                        break;
                     }
 
                 } else if (ordem[e3] < 35) {
@@ -654,8 +634,29 @@ int main(void) {
                 }
 
                 /* Atualiza o deck: remove as 3 cartas usadas */
-                atualizar_deck(ordem, total, e1, e2, e3);
+                //atualizar_deck(ordem, total, e1, e2, e3);
+                /* Marca as 3 escolhas como usadas (-1) */
+                ordem[e1] = -1;
+                ordem[e2] = -1;
+                ordem[e3] = -1;
+
+                /* Compacta o array: move validos para o inicio */
+                int write = 0;
+                for (int read = 0; read < total; read++) {
+                    if (ordem[read] >= 0) {
+                        ordem[write] = ordem[read];
+                        write++;
+                    }
+                }
+                /* Preenche o resto com -1 */
+                for (int i = write; i < total; i++) {
+                    ordem[i] = -1;
+                }
+                total = write;
             }
+        }
+        if(japulou==0) {
+            contador_sala++;
         }
         system("cls");
         printf("\n");
@@ -670,7 +671,8 @@ int main(void) {
         printf("  Voce foi derrotado pela Masmorra...\n");
         printf(" =================================================================="
                " \n\n");
-    } else {
+    }
+    if(vida==-2||total<1) {
         printf(
             "\n ================================================================== "
             "\n");
