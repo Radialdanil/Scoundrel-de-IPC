@@ -2,8 +2,8 @@
 /*
  * Disciplina: SME0230 - IPC
  *
- * Integrantes: Danilo Viveiros de Assis    Nusp:17885211
- *              Joao Victor Gonzaga         Nusp:17900537
+ * Integrantes: Danilo Viveiros de Assis    
+ *              Joao Victor Gonzaga         
  *
  * Professora, o terceiro integrante do grupo nao se disponibilizou durante todo o periodo
  * da atividade, apenas manifestando-se no data final, pois o contatamos novamente nesta data
@@ -28,7 +28,30 @@
  * =========================================================================
  */
 
+
+
+
+
+
+
+
+
+
+
+
 /* MUDAR A INCLUDE windows.h PARA unistd.h ASSIM COMO cls PARA clear no System*/
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Permutacao aleatoria (Fisher-Yates) */
 void randomiza(int ordem[], int n) {
@@ -406,7 +429,8 @@ void pular_sala(int ordem[], int total_restante) {
  }
 
  /* escolhe cartas do robo */
- int robo_cartas (int c1, int c2, int c3, int c4, int e1, int e2, int escolha, int vida, int arma){
+ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, int rand, int e1, int e2){
+     int escolha = -1;
     /* maior monstro que nao te mata */
     if(c1<26||c2<26||c3<26||c4<26){ /* ve se tem algum monstro */
             /* ve se algum nao te mata */
@@ -430,16 +454,16 @@ void pular_sala(int ordem[], int total_restante) {
                 m4=c4; /* se c4 e monstro, guarda seu indice */
             }
                 /* visto quais sao monstros, ve se tem um maior que nao te mata */
-                if((m1 != 0)&&(vida+arma-((c1%13)+1)>0)){ /* se c1 e monstro e nao te mata */
+                if((m1 != -1)&&(vida+arma-((c1%13)+1)>0)){ /* se c1 e monstro e nao te mata */
                     maiorm = c1;
                 }
-                if((m2 != 0)&&(vida+arma-((c2%13)+1)>0)){ /* se c2 e monstro e nao te mata */
+                if((m2 != -1)&&(vida+arma-((c2%13)+1)>0)){ /* se c2 e monstro e nao te mata */
                     maiorm = c2;
                 }
-                if((m3 != 0)&&(vida+arma-((c3%13)+1)>0)){ /* se c1 e monstro e nao te mata */
+                if((m3 != -1)&&(vida+arma-((c3%13)+1)>0)){ /* se c1 e monstro e nao te mata */
                     maiorm = c3;
                 }
-                if((m4 != 0)&&(vida+arma-((c4%13)+1)>0)){ /* se c1 e monstro e nao te mata */
+                if((m4 != -1)&&(vida+arma-((c4%13)+1)>0)){ /* se c1 e monstro e nao te mata */
                     maiorm = c4;
                 }
                 /* se existir um que nao te mata, maiorm > -1 */
@@ -462,10 +486,142 @@ void pular_sala(int ordem[], int total_restante) {
                         maiorm=c4;
                     }
                     /* achado o maior que nao te mata escolhe ele*/
-                    /* under construction */
-                } /* entra aqui se tem monstro, mas nenhum nao te mata */
-    } /* entra aqui se nao tem monstro */
-
+                    if(m1 != -1 && c1 >= maiorm && (1 != e1 || 1 != e2)){ /* se o maior e o c1 */
+                    escolha = 1; /* se c1 e valido e e o maior, escolhe ele */
+                    }
+                    if(m2 != -1 && c2 >= maiorm && (2 != e1 || 2 != e2)){ /* se o maior e o c1 */
+                    escolha = 2; /* se c1 e valido e e o maior, escolhe ele */
+                    }
+                    if(m3 != -1 && c3 >= maiorm && (3 != e1 || 3 != e2)){ /* se o maior e o c1 */
+                    escolha = 3; /* se c1 e valido e e o maior, escolhe ele */
+                    }
+                    if(m4 != -1 && c4 >= maiorm && (4 != e1 || 4 != e2)){ /* se o maior e o c1 */
+                    escolha = 4; /* se c1 e valido e e o maior, escolhe ele */
+                    }
+                }
+    } else { /* entra aqui se nao tem monstro */
+        if(c1<34||c2<34||c3<34||c4<34){ /* ve se tem alguma arma */
+            int a1,a2,a3,a4,ma; /* ve quais sao armas e melhor arma */
+            a1 = -1;
+            a2 = -1;
+            a3 = -1;
+            a4 = -1;
+            ma = -1;
+            /* armat e arma atual */
+            if(c1<34){
+                a1 = c1;
+            }
+            if(c2<34){
+                a2 = c2;
+            }
+            if(c3<34){
+                a3 = c3;
+            }
+            if(c4<34){
+                a4 = c4;
+            }
+            /* sabendo quais sao armas, decide uma boa o suficiente */
+            if(a1 != -1 && c1 > armat){ /* se c1 e arma e acima do treshold */
+                armat = 1;
+            }
+            if(a2 != -1 && c2 > armat){ /* se c2 e arma e acima do treshold */
+                armat = 2;
+            }
+            if(a3 != -1 && c3 > armat){ /* se c3 e arma e acima do treshold */
+                armat = 3;
+            }
+            if(a4 != -1 && c4 > armat){ /* se c4 e arma e acima do treshold */
+                armat = 4;
+            }
+            /* se nenhuma passando do treshold escolhe qualquer */
+            if(armat == -1){
+                if(a1 != -1){
+                    armat = 1; /* escolhe a 1 se ela for arma */
+                }
+                if(a2 != -1){
+                    armat = 2; /* escolhe a 2 se ela for arma */
+                }
+                if(a3 != -1){
+                    armat = 3; /* escolhe a 1 se ela for arma */
+                }
+                if(a4 != -1){
+                    armat = 4; /* escolhe a 1 se ela for arma */
+                }
+            }
+            escolha = armat;
+        } else { /* se nao tiver arma passa pra ca */
+            /* aqui se encontram as curas, se a vida for menos da metade escolhe a maior cura, senao escolhe a menor */
+            /* escolher a maior cura */
+                int p1, p2, p3, p4, mp;
+                p1 = -1;
+                p2 = -1;
+                p3 = -1;
+                p4 = -1;
+                mp = -1;
+                /* ve as curas disponiveis */
+                if(c1 < 43){
+                    p1 = c1;
+                }
+                if(c2 < 43){
+                    p2 = c2;
+                }
+                if(c3 < 43){
+                    p3 = c3;
+                }
+                if(c4 < 43){
+                    p4 = c4;
+                }
+            if(vida < 10){
+                /* ve a maior cura */
+                if(p1 != -1 && mp < c1){
+                    mp = c1;
+                }
+                if(p2 != -1 && mp <c2){
+                    mp = c3;
+                }
+                if(p3 != -1 && mp < c3){
+                    mp = c3;
+                }
+                if(p4 != -1 && mp <c4){
+                    mp = c4;
+                }
+            } else {
+                /* escolhe a menor */
+                /* ve a menor cura */
+                if(p1 != -1 && c1 <= mp){
+                    mp = c1;
+                }
+                if(p2 != -1 && c2 <= mp){
+                    mp = c3;
+                }
+                if(p3 != -1 && c3 <= mp){
+                    mp = c3;
+                }
+                if(p4 != -1 && c4 <= mp){
+                    mp = c4;
+                }
+            }
+            /* sabendo o valor da maior escolhe ela */
+                if(mp == c1){
+                    mp = 1;
+                }
+                if(mp == c2){
+                    mp = 2;
+                }
+                if(mp == c3){
+                    mp = 3;
+                }
+                if(mp == c4){
+                    mp = 4;
+                }
+                escolha = mp;
+        }
+    }
+    if(escolha = -1){ /* se nao escolheu a melhor jogada, vai qualquer uma */
+        escolha = rand;
+    }
+    printf(" %d", escolha);
+    Sleep(500);
     return escolha; //volta uma escolha por vez, a main possui uma memoria das escolhas anteriores
  }
 
@@ -480,6 +636,9 @@ int main(void) {
     int val_resolvido;
     int contador_sala = 1;
     int player;          /* guarda quem joga */
+    int random, random_passado;
+    random_passado = 5;
+    srand(time(NULL));
 
     /* ve quem joga */
     player = menu(player);
@@ -554,6 +713,30 @@ int main(void) {
                         scanf("%d %d %d", &e1, &e2, &e3);
                     } else {
                         /* retorna e1 e2 e3 */
+                        /* randomica o que e aleatorio */
+                        do{
+                            random = rand()%4+1;
+                            srand(rand()+rand()*rand()+rand()*rand());
+                        }while(random==random_passado);
+                        random_passado=random;
+                        e1 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2);
+                        do{
+                            random = rand()%4+1;
+                            srand(rand()+rand()*rand()+rand()*rand());
+                        }while(random==random_passado);
+                        random_passado=random;
+                        e2 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2);
+                        do{
+                            random = rand()%4+1;
+                            srand(rand()+rand()*rand()+rand()*rand());
+                        }while(random==random_passado);
+                        random_passado=random;
+                        e3 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2);
+                        do{
+                            random = rand()%4+1;
+                            srand(rand()+rand()*rand()+rand()*rand());
+                        }while(random==random_passado);
+                        random_passado=random;
                     }
                     e1--;
                     e2--;
@@ -581,6 +764,7 @@ int main(void) {
                                 scanf("%d", &usar_arma);
                             } else {
                                 /* retorna usar arma */
+                                robo_arma();
                             }
                             if (usar_arma < 0 || usar_arma > 1) {
                                 printf("  Entrada invalida. Digite 1 para sim ou 0 para nao: ");
@@ -644,6 +828,7 @@ int main(void) {
                                 scanf("%d", &usar_arma);
                             } else {
                                 /* retorna usar arma */
+                                robo_arma();
                             }
 
                             if (usar_arma < 0 || usar_arma > 1) {
@@ -709,6 +894,7 @@ int main(void) {
                                 scanf("%d", &usar_arma);
                             } else {
                                 /* retorna usar arma */
+                                robo_arma();
                             }
 
                             if (usar_arma < 0 || usar_arma > 1) {
