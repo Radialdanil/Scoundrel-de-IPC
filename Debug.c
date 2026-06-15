@@ -424,12 +424,12 @@ int robo_pula (int c1, int c2, int c3, int c4, int vida) {
 
 /* escolhe se o robo usa arma */
 int robo_arma (int monstro, int vida) {
-    /* por enquanto sempre usa arma */
-    printf("1\n");
-    Sleep(500);
     if(monstro>=4 || monstro > vida) {
+        printf("1\n");
         return 1;
     }
+    printf("0\n");
+    Sleep(700);
     return 0;
 }
 
@@ -445,7 +445,6 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
         p2 = -1;
         p3 = -1;
         p4 = -1;
-        mp = -2;
         /* ve as curas disponiveis */
         if(c1 < 43 && c1 >35) {
             p1 = c1;
@@ -460,6 +459,7 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
             p4 = c4;
         }
         if(vida < 10) {
+            mp = -2;
             /* ve a maior cura */
             if(p1 != -1 && mp < c1) {
                 mp = c1;
@@ -474,6 +474,7 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
                 mp = c4;
             }
         } else {
+            mp = 100;
             /* escolhe a menor */
             /* ve a menor cura */
             if(p1 != -1 && c1 <= mp) {
@@ -487,6 +488,9 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
             }
             if(p4 != -1 && c4 <= mp) {
                 mp = c4;
+            }
+            if(mp == 100) {
+                mp = -2;
             }
         }
         /* sabendo o valor da maior escolhe ela */
