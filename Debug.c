@@ -394,25 +394,25 @@ int robo_pula (int c1, int c2, int c3, int c4, int vida) {
     int dano_monstro = 0;
     float treshold;
     int roboescolha = 0;
-    treshold = vida*0.7;
+    treshold = vida*0.5;
     //conta quantos monstros tem
     if(c1<26) {
         contador_monstro++;
-        dano_monstro += c1;
+        dano_monstro += c1%13+1;
     }
     if(c2<26) {
         contador_monstro++;
-        dano_monstro += c2;
+        dano_monstro += c2%13+1;
     }
     if(c3<26) {
         contador_monstro++;
-        dano_monstro += c3;
+        dano_monstro += c3%13+1;
     }
     if(c4<26) {
         contador_monstro++;
-        dano_monstro += c4;
+        dano_monstro += c4%13+1;
     }
-    if((contador_monstro > 3 && (float)dano_monstro/(float)contador_monstro >= treshold)||(contador_monstro==0)) {
+    if((contador_monstro > 3 && ((float)dano_monstro*1.5) >= treshold)||(contador_monstro==0)) {
         roboescolha = 1;
     }
 
@@ -423,11 +423,11 @@ int robo_pula (int c1, int c2, int c3, int c4, int vida) {
 }
 
 /* escolhe se o robo usa arma */
-int robo_arma (int monstro) {
+int robo_arma (int monstro, int vida) {
     /* por enquanto sempre usa arma */
     printf("1\n");
     Sleep(500);
-    if(monstro>=4){
+    if(monstro>=4 || monstro > vida) {
         return 1;
     }
     return 0;
@@ -447,16 +447,16 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
         p4 = -1;
         mp = -2;
         /* ve as curas disponiveis */
-        if(c1 < 43) {
+        if(c1 < 43 && c1 >35) {
             p1 = c1;
         }
-        if(c2 < 43) {
+        if(c2 < 43&& c2 >35) {
             p2 = c2;
         }
-        if(c3 < 43) {
+        if(c3 < 43&& c2 >35) {
             p3 = c3;
         }
-        if(c4 < 43) {
+        if(c4 < 43&& c4 >35) {
             p4 = c4;
         }
         if(vida < 10) {
@@ -465,7 +465,7 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
                 mp = c1;
             }
             if(p2 != -1 && mp <c2) {
-                mp = c3;
+                mp = c2;
             }
             if(p3 != -1 && mp < c3) {
                 mp = c3;
@@ -480,7 +480,7 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
                 mp = c1;
             }
             if(p2 != -1 && c2 <= mp) {
-                mp = c3;
+                mp = c2;
             }
             if(p3 != -1 && c3 <= mp) {
                 mp = c3;
@@ -506,7 +506,7 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
     }
     /* Aqui se encontram as armas*/
     if(((e1 > 25) && (e1 <35)) || ((e2 > 25) && (e2 < 35))) { /* se ja escolheu arma nao entra aqui */
-        if(c1<34||c2<34||c3<34||c4<34) { /* ve se tem alguma arma */
+        if((c1<35&&c1>25)||(c2<35&&c2>25)||(c3<35&&c3>25)||(c4<34&&c4>25)) { /* ve se tem alguma arma */
             int a1,a2,a3,a4,ma; /* ve quais sao armas e melhor arma */
             a1 = -1;
             a2 = -1;
@@ -609,21 +609,21 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
         }
         if((m2 != -1)&&(vida+arma-((c2%13)+1)>0)) { /* se c2 e monstro e nao te mata */
             /* se e1 e e2 nao sao monstros que te matam */
-            if(e1>-1 && e1 < 26) { /* se e1 monstro */
+            if(e1>-1 && ve1 < 26) { /* se e1 monstro */
                 if(vida+arma-(((c2%13)+1)+((ve1%13)+1))>0) { /* se a conta com e1 nao te mata */
                     if(c2>=maiorm) {
                         maiorm = c2;
                     }
                 }
             }
-            if(e2>-1 && e2 < 26) { /* se e2 monstro */
+            if(e2>-1 && ve2 < 26) { /* se e2 monstro */
                 if(vida+arma-(((c2%13)+1)+((ve2%13)+1))>0) { /* se a conta com e2 nao te mata */
                     if(c2>=maiorm) {
                         maiorm = c2;
                     }
                 }
             }
-            if((e1>-1 && e1 < 26)&&(e2>-1 && e2 < 26)) { /* se e1 e e2 sao monstros */
+            if((e1>-1 && ve1 < 26)&&(e2>-1 && ve2 < 26)) { /* se e1 e e2 sao monstros */
                 if(vida+arma-(((c2%13)+1)+((ve1%13)+1)+((ve2%13)+1))>0) { /* se a conta com e1 e e2 nao te mata */
                     if(c2>=maiorm) {
                         maiorm = c2;
@@ -681,7 +681,7 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
         }
     }
 
-    if(escolha = -2 || escolha == e1 || escolha == e2) { /* se nao escolheu a melhor jogada, vai qualquer uma */
+    if(escolha == -2 || escolha == e1 || escolha == e2) { /* se nao escolheu a melhor jogada, vai qualquer uma */
         escolha = rand;
     }
     printf(" %d", escolha);
@@ -703,6 +703,7 @@ int main(void) {
     int random, random_passado;
     random_passado = 5;
     srand(time(NULL));
+    random = (rand())%4+1;
 
     /* ve quem joga */
     player = menu(player);
@@ -782,18 +783,16 @@ int main(void) {
                         ve1 = ordem[e1-1];
 
                         /* randomiza */
-                        do{
-                            srand(time(NULL));
+                        do {
                             random = rand()%4+1;
-                        }while(random==e1||random==e2);
+                        } while(random==e1||random==e2);
                         e2 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2);
                         ve2 = ordem[e2-1];
 
                         /* randomiza */
-                        do{
-                            srand(time(NULL));
+                        do {
                             random = rand()%4+1;
-                        }while(random==e1||random==e2);
+                        } while(random==e1||random==e2);
                         e3 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2);
                     }
                     e1--;
@@ -822,7 +821,7 @@ int main(void) {
                                 scanf("%d", &usar_arma);
                             } else {
                                 /* retorna usar arma */
-                                usar_arma = robo_arma(ordem[e1]);
+                                usar_arma = robo_arma(ordem[e1], vida);
                             }
                             if (usar_arma < 0 || usar_arma > 1) {
                                 printf("  Entrada invalida. Digite 1 para sim ou 0 para nao: ");
@@ -886,7 +885,7 @@ int main(void) {
                                 scanf("%d", &usar_arma);
                             } else {
                                 /* retorna usar arma */
-                                usar_arma = robo_arma(ordem[e2]);
+                                usar_arma = robo_arma(ordem[e2], vida);
                             }
 
                             if (usar_arma < 0 || usar_arma > 1) {
@@ -952,7 +951,7 @@ int main(void) {
                                 scanf("%d", &usar_arma);
                             } else {
                                 /* retorna usar arma */
-                                usar_arma = robo_arma(ordem[e3]);
+                                usar_arma = robo_arma(ordem[e3], vida);
                             }
 
                             if (usar_arma < 0 || usar_arma > 1) {
