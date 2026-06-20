@@ -4,6 +4,10 @@
  *
  * Integrantes: Danilo Viveiros de Assis
  *              Joao Victor Gonzaga
+ *
+ * Professora, o terceiro integrante do grupo nao se disponibilizou durante todo o periodo
+ * da atividade, apenas manifestando-se no data final, pois o contatamos novamente nesta data
+ *
  * IA foi utilizado para a realizacao da arte em ASCII do titulo "SCOUNDREL", juntamente do site asciiart.edu
  * assim como para corrigir o erro na condicao de vitoria, dado que anteriormente o jogo rodava eternamente
  * e erros de indice de contadores que se acumulavam ao longo das salas, o que fazia o jogo acabar antes do fim
@@ -660,7 +664,6 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
     if(escolha == -2 || escolha == e1 || escolha == e2) { /* se nao escolheu a melhor jogada, vai qualquer uma */
         escolha = rando;
     }
-    printf(" %d", escolha);
     usleep(1000000);
     return escolha; //volta uma escolha por vez, a main possui uma memoria das escolhas anteriores
 }
@@ -731,7 +734,6 @@ int main(void) {
                         if (lance_random == 1) {
                             opcao = 1;
                             lance_random = 0;
-                            //printf("SALVEI\n");
                         }
                     }
 
@@ -765,6 +767,7 @@ int main(void) {
                         scanf("%d %d %d", &e1, &e2, &e3);
                     } else {
                         e1 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
+                        printf(" %d", e1);
                         ve1 = ordem[e1-1];
 
                         /* randomiza */
@@ -772,6 +775,7 @@ int main(void) {
                             random = rand()%4+1;
                         } while(random==e1||random==e2);
                         e2 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
+                        printf(" %d", e2);
                         ve2 = ordem[e2-1];
 
                         /* randomiza */
@@ -779,6 +783,7 @@ int main(void) {
                             random = rand()%4+1;
                         } while(random==e1||random==e2);
                         e3 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
+                        printf(" %d", e3);
                     }
                     e1--;
                     e2--;
