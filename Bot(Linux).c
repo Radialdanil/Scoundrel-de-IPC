@@ -5,9 +5,6 @@
  * Integrantes: Danilo Viveiros de Assis
  *              Joao Victor Gonzaga
  *
- * Professora, o terceiro integrante do grupo nao se disponibilizou durante todo o periodo
- * da atividade, apenas manifestando-se no data final, pois o contatamos novamente nesta data
- *
  * IA foi utilizado para a realizacao da arte em ASCII do titulo "SCOUNDREL", juntamente do site asciiart.edu
  * assim como para corrigir o erro na condicao de vitoria, dado que anteriormente o jogo rodava eternamente
  * e erros de indice de contadores que se acumulavam ao longo das salas, o que fazia o jogo acabar antes do fim
@@ -100,7 +97,7 @@ void imprimir_titulo(void) {
 }
 
 /* printa menu inicial */
-int menu(int player) {
+int menu(int player) { /* Aqui a pessoa escolhe o modo de jogo, se a pessoa ou o computador joga */
 
     imprimir_titulo();
     printf("  \t\t======================================== \n");
@@ -119,6 +116,7 @@ int menu(int player) {
 /* Imprime uma linha de uma carta ASCII (12 linhas x 18 chars com bordas).
  * Todas as linhas internas tem EXATAMENTE 16 chars entre os pipes |...|
  * linha: 0 a 11  |  indice: posicao no array (ou -1 para carta invalida) */
+
 void imprimir_linha_carta(int linha, int indice) {
     char val_str[3];
     int val = 0;
@@ -241,7 +239,7 @@ void imprimir_sala(int ordem[], int ini, int c_sala) {
     printf("\n  --- SALA %d/15 ---\n\n", c_sala);
     if(c_sala<15) {
         printf("  Carta 1             Carta 2             Carta 3             Carta 4\n");
-    } else {
+    } else { /* se e a ultima sal aso tem duas cartas */
         printf("  Carta 1             Carta 2\n");
     }
 
@@ -272,7 +270,7 @@ int cura(int vida, int indice_pocao, int jacurou) {
 /* Calcula vida apos enfrentar monstro (com ou sem arma).
  * arma == 0 significa desarmado. */
 int calcular_dano(int vida, int indice_monstro, int arma) {
-    int valor_monstro = (indice_monstro % 13) + 1;
+    int valor_monstro = valor_carta(indice_monstro);
     int dano_sofrido = valor_monstro - arma;
     if (dano_sofrido > 0) {
         vida = vida - dano_sofrido;
@@ -284,14 +282,14 @@ int calcular_dano(int vida, int indice_monstro, int arma) {
  * A arma so pode atacar monstros de valor menor que o ultimo derrotado.
  * Retorna o novo limite (que passa a ser o valor do monstro derrotado). */
 int atualizar_limite_arma(int indice_monstro) {
-    return (indice_monstro % 13) + 1;
+    return valor_carta(indice_monstro);
 }
 
 /* Verifica se a arma pode ser usada contra este monstro.
  * limite_arma == 0 significa arma recen-equipada (sem restricao ainda).
  * Retorna 1 se pode usar, 0 se nao pode. */
 int arma_pode_atacar(int limite_arma, int indice_monstro) {
-    int valor_monstro = (indice_monstro % 13) + 1;
+    int valor_monstro = valor_carta(indice_monstro);
     if (limite_arma == 0) {
         return 1; /* sem restricao ainda */
     }
@@ -364,7 +362,7 @@ void pular_sala(int ordem[], int total_restante) {
 /* Funcoes do robo */
 /* escolhe se o robo vai pular */
 /* c3 e c4 podem nao existir */
-int robo_pula (int c1, int c2, int c3, int c4, int vida) {
+int robo_pula (int c1, int c2, int c3, int c4, int vida) { /* Aqui o robo decide se pula ou nao a sala */
     int contador_monstro = 0;
     int dano_monstro = 0;
     float treshold;
@@ -373,35 +371,35 @@ int robo_pula (int c1, int c2, int c3, int c4, int vida) {
     //conta quantos monstros tem
     if(c1<26 && c1 >= 0) {
         contador_monstro++;
-        dano_monstro += c1%13+1;
+        dano_monstro += valor_carta(c1);
     }
     if(c2<26 && c2 >= 0) {
         contador_monstro++;
-        dano_monstro += c2%13+1;
+        dano_monstro += valor_carta(c2);
     }
     if(c3<26 && c3 >= 0) {
         contador_monstro++;
-        dano_monstro += c3%13+1;
+        dano_monstro += valor_carta(c3);
     }
     if(c4<26 && c4 >= 0) {
         contador_monstro++;
-        dano_monstro += c4%13+1;
+        dano_monstro += valor_carta(c4);
     }
-    if((contador_monstro > 3 && ((float)dano_monstro*1.5) >= treshold)||(contador_monstro==0)) {
+    if((contador_monstro > 3 && ((float)dano_monstro*1.5/contador_monstro) >= treshold)||(contador_monstro==0)) { /* Se tem muito monstro ou se o dano somado te mataria ou se nao tem monstro, pra salvar pocao e arma */
         roboescolha = 1;
     }
 
     printf("%d", roboescolha);
-    usleep(700000);
+    usleep(50000);
 
     return roboescolha;
 }
 
 /* escolhe se o robo usa arma */
-int robo_arma (int monstro, int vida) {
-    if(((monstro%13)+1 >=4) || ((monstro%13)+1 > vida)) {
+int robo_arma (int monstro, int vida) { /* ve se usa arma */
+    if((valor_carta(monstro) >=4) || (valor_carta(monstro) >= vida)) {
         printf("1\n");
-        return 1;
+        return 1; /* escolhe usar arma se o dano mosntro for acima de 4 ou maior ou igual a vida */
     }
     printf("0\n");
     usleep(700000);
@@ -436,96 +434,96 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
             m4=c4; /* se c4 e monstro, guarda seu indice */
         }
         /* visto quais sao monstros, ve se tem um maior que nao te mata */
-        if((m1 != -1)&&(vida+arma-((c1%13)+1)>0)) { /* se c1 e monstro e nao te mata */
+        if((m1 != -1)&&(vida+arma-(valor_carta(c1)>0))) { /* se c1 e monstro e nao te mata */
             /* se e1 e e2 nao sao monstros que te matam */
             if(e1>-1 && ve1 < 26) { /* se e1 monstro */
-                if(vida+arma-(((c1%13)+1)+ve1)>0) { /* se a conta com e1 nao te mata */
-                    if((c1%13)+1>maiorm) {
+                if(vida+arma-((valor_carta(c1))+ve1)>0) { /* se a conta com e1 nao te mata */
+                    if(valor_carta(c1)>maiorm) {
                         maiorm = 1;
                     }
                 }
             }
             if(e2>-1 && ve2 < 26) { /* se e2 monstro */
-                if(vida+arma-(((c1%13)+1)+ve2)>0) { /* se a conta com e2 nao te mata */
+                if(vida+arma-((valor_carta(c1))+ve2)>0) { /* se a conta com e2 nao te mata */
                     if(c1>maiorm) {
                         maiorm = 1;
                     }
                 }
             }
             if((e1>-1 && ve1 < 26)&&(e2>-1 && ve2 < 26)) { /* se e1 e e2 sao monstros */
-                if(vida+arma-(((c1%13)+1)+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
+                if(vida+arma-((valor_carta(c1))+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
                     if(c1>maiorm) {
                         maiorm = 1;
                     }
                 }
             }
         }
-        if((m2 != -1)&&(vida+arma-((c2%13)+1)>0)) { /* se c2 e monstro e nao te mata */
+        if((m2 != -1)&&(vida+arma-((valor_carta(c2))>0))) { /* se c2 e monstro e nao te mata */
             /* se e1 e e2 nao sao monstros que te matam */
             if(e1>-1 && ve1 < 26) { /* se e1 monstro */
-                if(vida+arma-(((c2%13)+1)+ve1%13)>0) { /* se a conta com e1 nao te mata */
+                if(vida+arma-((valor_carta(c2)+ve1)>0)) { /* se a conta com e1 nao te mata */
                     if(c2>maiorm) {
                         maiorm = 2;
                     }
                 }
             }
             if(e2>-1 && ve2 < 26) { /* se e2 monstro */
-                if(vida+arma-(((c2%13)+1)+ve2)>0) { /* se a conta com e2 nao te mata */
+                if(vida+arma-((valor_carta(c2))+ve2)>0) { /* se a conta com e2 nao te mata */
                     if(c2>maiorm) {
                         maiorm = 2;
                     }
                 }
             }
             if((e1>-1 && ve1 < 26)&&(e2>-1 && ve2 < 26)) { /* se e1 e e2 sao monstros */
-                if(vida+arma-(((c2%13)+1)+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
+                if(vida+arma-((valor_carta(c2))+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
                     if(c2>maiorm) {
                         maiorm = 2;
                     }
                 }
             }
         }
-        if((m3 != -1)&&(vida+arma-((c3%13)+1)>0)) { /* se c3 e monstro e nao te mata */
+        if((m3 != -1)&&(vida+arma-(valor_carta(c3))>0)) { /* se c3 e monstro e nao te mata */
             /* se e1 e e2 nao sao monstros que te matam */
             if(e1>-1 && ve1 < 26) { /* se e1 monstro */
-                if(vida+arma-(((c3%13)+1)+ve1)>0) { /* se a conta com e1 nao te mata */
+                if(vida+arma-((valor_carta(c3))+ve1)>0) { /* se a conta com e1 nao te mata */
                     if(c3>maiorm) {
                         maiorm = 3;
                     }
                 }
             }
             if(e2>-1 && ve2 < 26) { /* se e2 monstro */
-                if(vida+arma-(((c3%13)+1)+ve2)>0) { /* se a conta com e2 nao te mata */
+                if(vida+arma-((valor_carta(c3))+ve2)>0) { /* se a conta com e2 nao te mata */
                     if(c3>maiorm) {
                         maiorm = 3;
                     }
                 }
             }
             if((e1>-1 && ve1 < 26)&&(e2>-1 && ve2 < 26)) { /* se e1 e e2 sao monstros */
-                if(vida+arma-(((c3%13)+1)+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
+                if(vida+arma-((valor_carta(c3))+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
                     if(c3>maiorm) {
                         maiorm = 3;
                     }
                 }
             }
         }
-        if((m4 != -1)&&(vida+arma-((c4%13)+1)>0)) { /* se c1 e monstro e nao te mata */
+        if((m4 != -1)&&(vida+arma-(valor_carta(c4))>0)) { /* se c1 e monstro e nao te mata */
             /* se e1 e e2 nao sao monstros que te matam */
             if(e1>-1 && e1 < 26) { /* se e1 monstro */
-                if(vida+arma-(((c4%13)+1)+ve1)>0) { /* se a conta com e1 nao te mata */
+                if(vida+arma-((valor_carta(c4))+ve1)>0) { /* se a conta com e1 nao te mata */
                     if(c4>maiorm) {
                         maiorm = 4;
                     }
                 }
             }
             if(e2>-1 && ve2 < 26) { /* se e2 monstro */
-                if(vida+arma-(((c4%13)+1)+ve2)>0) { /* se a conta com e2 nao te mata */
+                if(vida+arma-((valor_carta(c4))+ve2)>0) { /* se a conta com e2 nao te mata */
                     if(c4>maiorm) {
                         maiorm = 4;
                     }
                 }
             }
             if((e1>-1 && ve1 < 26)&&(e2>-1 && ve2 < 26)) { /* se e1 e e2 sao monstros */
-                if(vida+arma-(((c4%13)+1)+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
+                if(vida+arma-((valor_carta(c4))+ve1+ve2)>0) { /* se a conta com e1 e e2 nao te mata */
                     if(c4>maiorm) {
                         maiorm = 4;
                     }
@@ -630,16 +628,16 @@ int robo_cartas (int c1, int c2, int c3, int c4, int vida, int arma, int armat, 
                 a4 = c4;
             }
             /* sabendo quais sao armas, decide uma boa o suficiente */
-            if(a1 != -1 && (c1%13)+1 > armat) { /* se c1 e arma e acima do treshold */
+            if(a1 != -1 && valor_carta(c1) > armat) { /* se c1 e arma e acima do treshold */
                 ma = 1;
             }
-            if(a2 != -1 && (c2%13)+1 > armat) { /* se c2 e arma e acima do treshold */
+            if(a2 != -1 && valor_carta(c2) > armat) { /* se c2 e arma e acima do treshold */
                 ma = 2;
             }
-            if(a3 != -1 && (c3%13)+1 > armat) { /* se c3 e arma e acima do treshold */
+            if(a3 != -1 && valor_carta(c3) > armat) { /* se c3 e arma e acima do treshold */
                 ma = 3;
             }
-            if(a4 != -1 && (c4%13)+1 > armat) { /* se c4 e arma e acima do treshold */
+            if(a4 != -1 && valor_carta(c4) > armat) { /* se c4 e arma e acima do treshold */
                 ma = 4;
             }
             /* se nenhuma passando do treshold escolhe qualquer */
@@ -729,7 +727,9 @@ int main(void) {
                         opcao = robo_pula(ordem[0], ordem[1], ordem[2], ordem[3], vida);
                         int teste1, teste2, teste3;
                         teste1 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
+                        ve1 = ordem[teste1-1];
                         teste2 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
+                        ve2 = ordem[teste2-1];
                         teste3 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
                         if (lance_random == 1) {
                             opcao = 1;
@@ -784,6 +784,7 @@ int main(void) {
                         } while(random==e1||random==e2);
                         e3 = robo_cartas(ordem[0], ordem[1], ordem[2], ordem[3], vida, arma, limite_arma, random, e1, e2, ve1, ve2, &lance_random);
                         printf(" %d", e3);
+                        usleep(1000000);
                     }
                     e1--;
                     e2--;
